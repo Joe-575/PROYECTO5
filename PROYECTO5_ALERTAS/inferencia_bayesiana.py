@@ -74,6 +74,10 @@ class RedBayesiana:
         if variable_consulta not in self.nodos:
             raise KeyError(f"Variable desconocida: {variable_consulta}")
 
+        if variable_consulta in evidencia:
+            val = evidencia[variable_consulta]
+            return {True: 1.0 if val else 0.0, False: 0.0 if val else 1.0}
+
         distribucion: Dict[bool, float] = {}
         for val in (True, False):
             evidencia_extendida = evidencia.copy()
