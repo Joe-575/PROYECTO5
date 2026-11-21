@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOC Bayesiano · Interpretación Probabilística de Alertas</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Barra superior -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L4 5v6c0 5.25 3.4 10.15 8 11.5 4.6-1.35 8-6.25 8-11.5V5l-8-3z"/>
+            <circle cx="12" cy="11" r="2.5"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>SOC Bayesiano</h1>
+          <p id="subtitulo-red">Interpretación probabilística de alertas informáticas</p>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" role="tablist" aria-label="Vistas principales">
+        <button class="nav-tab active" data-tab="panel" role="tab" aria-selected="true">
+          <span>Red &amp; Inferencia</span>
+        </button>
+        <button class="nav-tab" data-tab="escenarios" role="tab" aria-selected="false">
+          <span>4 Escenarios</span>
+        </button>
+        <button class="nav-tab" data-tab="previas" role="tab" aria-selected="false">
+          <span>Comparación Previas</span>
+        </button>
+        <button class="nav-tab" data-tab="cpt" role="tab" aria-selected="false">
+          <span>Editor CPT</span>
+        </button>
+      </nav>
+
+      <div class="topbar-actions">
+        <div class="status-pills">
+          <span class="pill pill-ok" title="Motor exacto por enumeración (inferencia_bayesiana.py)">
+            <span class="dot"></span>Motor Propio
+          </span>
+          <span class="pill pill-muted" id="badge-pgmpy" title="Estado de verificación cruzada con pgmpy">
+            <span class="dot"></span>pgmpy
+          </span>
+        </div>
+        <button id="btn-reset-global" class="btn btn-ghost btn-sm" title="Restaurar probabilidades originales de red_alertas.json" hidden>
+          Restaurar CPT
+        </button>
+        <button id="btn-tema" class="btn btn-icon" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+          <svg id="icono-tema" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+      <!-- VISTA 1: RED BAYESIANA & INFERENCIA INTERACTIVA -->
+      <section id="view-panel" class="view active" role="tabpanel">
+        <!-- KPIs superiores -->
+        <div class="kpi-strip">
+          <article class="kpi-card kpi-intrusion">
+            <div class="kpi-head">
+              <span class="kpi-label">P(I = True | e) · Intrusión Externa</span>
+              <span class="risk-badge" id="badge-riesgo-I">Bajo</span>
+            </div>
+            <div class="kpi-value tabular" id="kpi-I">2.00%</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-I"></div></div>
+          </article>
+
+          <article class="kpi-card kpi-config">
+            <div class="kpi-head">
+              <span class="kpi-label">P(C = True | e) · Error Configuración</span>
+              <span class="kpi-code">Causa C</span>
+            </div>
+            <div class="kpi-value tabular" id="kpi-C">8.00%</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-C"></div></div>
+          </article>
+
+          <article class="kpi-card kpi-mant">
+            <div class="kpi-head">
+              <span class="kpi-label">P(M = True | e) · Mantenimiento</span>
+              <span class="kpi-code">Causa M</span>
+            </div>
+            <div class="kpi-value tabular" id="kpi-M">15.00%</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-M"></div></div>
+          </article>
+
+          <article class="kpi-card kpi-meta">
+            <div class="kpi-head">
+              <span class="kpi-label">Diagnóstico Dominante</span>
+              <span class="kpi-code tabular" id="kpi-latencia">0.0 ms</span>
+            </div>
+            <div class="kpi-diagnosis" id="kpi-diagnostico">Operación normal</div>
+            <div class="kpi-sub" id="kpi-evidencia-resumen">Sin evidencia observada</div>
+          </article>
+        </div>
+
+        <div class="workspace-grid">
+          <!-- Grafo DAG interactivo -->
+          <div class="card card-dag">
+            <div class="card-header">
+              <div>
+                <h2>Topología de la Red Bayesiana (DAG)</h2>
+                <p class="card-subtitle">Haz clic en cualquier nodo para alternar su evidencia: <strong>Sin observar → True → False</strong></p>
+              </div>
+              <div class="card-actions">
+                <button id="btn-limpiar-evidencia" class="btn btn-secondary btn-sm">Limpiar evidencia</button>
+              </div>
+            </div>
+
+            <div class="dag-container">
+              <svg id="dag-svg" viewBox="0 0 820 410" role="img" aria-label="Grafo interactivo de la red bayesiana">
+                <defs>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+                    <path d="M 0 1 L 10 5 L 0 9 z" class="dag-arrow-head"></path>
+                  </marker>
+                  <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+                    <path d="M 0 1 L 10 5 L 0 9 z" class="dag-arrow-head active"></path>
+                  </marker>
+                </defs>
+                <g id="dag-layer-labels"></g>
+                <g id="dag-edges"></g>
+                <g id="dag-nodes"></g>
+              </svg>
+            </div>
+
+            <div class="dag-legend">
+              <div class="legend-item"><span class="swatch swatch-none"></span>Sin observar (inferido)</div>
+              <div class="legend-item"><span class="swatch swatch-true"></span>Evidencia = True</div>
+              <div class="legend-item"><span class="swatch swatch-false"></span>Evidencia = False</div>
+              <div class="legend-presets">
+                <span>Atajos:</span>
+                <button class="chip-btn" data-preset="1">Esc. 1</button>
+                <button class="chip-btn" data-preset="2">Esc. 2</button>
+                <button class="chip-btn" data-preset="3">Esc. 3</button>
+                <button class="chip-btn" data-preset="4">Esc. 4</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel lateral de evidencia y consulta exacta -->
+          <div class="side-stack">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h2>Control de Evidencia</h2>
+                  <p class="card-subtitle">Fija observaciones en tiempo real</p>
+                </div>
+              </div>
+              <div id="lista-controles-evidencia" class="evidence-list"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h2>Consulta Puntual <span class="mono">P(X | e)</span></h2>
+                  <p class="card-subtitle">Modo defensa en vivo + validación</p>
+                </div>
+                <select id="select-consulta" class="select-input" aria-label="Variable a consultar"></select>
+              </div>
+              <div id="resultado-consulta" class="query-box"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA 2: EVALUACIÓN DE LOS 4 ESCENARIOS -->
+      <section id="view-escenarios" class="view" role="tabpanel" hidden>
+        <div class="section-header">
+          <div>
+            <h2>Evaluación de los 4 Escenarios Predefinidos</h2>
+            <p class="card-subtitle">Comparativa exacta del algoritmo propio por enumeración frente a la biblioteca <code class="mono">pgmpy</code> (Eliminación de Variables).</p>
+          </div>
+          <button id="btn-refrescar-escenarios" class="btn btn-primary btn-sm">Recalcular Escenarios</button>
+        </div>
+
+        <div id="grid-escenarios" class="scenarios-grid"></div>
+      </section>
+
+      <!-- VISTA 3: COMPARACIÓN DE PROBABILIDADES PREVIAS -->
+      <section id="view-previas" class="view" role="tabpanel" hidden>
+        <div class="section-header">
+          <div>
+            <h2>Análisis de Sensibilidad y Probabilidades Previas</h2>
+            <p class="card-subtitle" id="previas-justificacion">Impacto de la probabilidad previa de intrusión P(I) bajo la misma evidencia.</p>
+          </div>
+        </div>
+
+        <div class="priors-controls card">
+          <div class="control-group">
+            <label for="select-escenario-previa">Escenario base</label>
+            <select id="select-escenario-previa" class="select-input"></select>
+          </div>
+          <div class="control-group">
+            <label for="range-previa-base">Previa Operación Normal: <strong id="lbl-previa-base" class="tabular">2.0%</strong></label>
+            <input id="range-previa-base" type="range" min="0.01" max="0.50" step="0.01" value="0.02" />
+          </div>
+          <div class="control-group">
+            <label for="range-previa-alta">Previa Alerta Ciberinteligencia: <strong id="lbl-previa-alta" class="tabular">20.0%</strong></label>
+            <input id="range-previa-alta" type="range" min="0.01" max="0.80" step="0.01" value="0.20" />
+          </div>
+        </div>
+
+        <div class="priors-grid">
+          <div class="card" id="card-previa-comparacion"></div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2>Curva de Sensibilidad <span class="mono">P(I=True | e)</span></h2>
+                <p class="card-subtitle">Evolución de la probabilidad posterior según P(I) inicial</p>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <svg id="svg-sensibilidad" viewBox="0 0 560 270" role="img" aria-label="Curva de sensibilidad"></svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA 4: EDITOR CPT EN VIVO -->
+      <section id="view-cpt" class="view" role="tabpanel" hidden>
+        <div class="section-header">
+          <div>
+            <h2>Editor de Tablas de Probabilidad Condicional (CPT)</h2>
+            <p class="card-subtitle">Modifica parámetros en memoria en tiempo real sin alterar <code class="mono">red_alertas.json</code>. Todos los cálculos se actualizan instantáneamente.</p>
+          </div>
+          <button id="btn-reset-cpt" class="btn btn-secondary btn-sm">Restaurar valores originales</button>
+        </div>
+
+        <div id="grid-cpt" class="cpt-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast de notificaciones -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

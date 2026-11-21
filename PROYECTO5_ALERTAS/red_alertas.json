@@ -1,0 +1,59 @@
+{
+  "descripcion": "Red Bayesiana para diagnostico de alertas en red informatica (valores simulados)",
+  "variables": {
+    "I": "Intrusion externa (ataque activo o acceso no autorizado)",
+    "C": "Error de configuracion (reglas de firewall, DNS o permisos)",
+    "M": "Mantenimiento o actividad legitima intensa (respaldos, escaneos autorizados)",
+    "T": "Trafico anomalo en red (picos de ancho de banda o escaneo de puertos)",
+    "A": "Alerta del sistema IDS/SIEM",
+    "L": "Fallos de autenticacion o bloqueo de cuentas en logs"
+  },
+  "orden_topologico": ["I", "C", "M", "T", "A", "L"],
+  "nodos": {
+    "I": {
+      "padres": [],
+      "cpt": {
+        "": 0.02
+      }
+    },
+    "C": {
+      "padres": [],
+      "cpt": {
+        "": 0.08
+      }
+    },
+    "M": {
+      "padres": [],
+      "cpt": {
+        "": 0.15
+      }
+    },
+    "T": {
+      "padres": ["I", "M"],
+      "cpt": {
+        "true,true": 0.95,
+        "true,false": 0.85,
+        "false,true": 0.60,
+        "false,false": 0.03
+      }
+    },
+    "A": {
+      "padres": ["I", "C"],
+      "cpt": {
+        "true,true": 0.98,
+        "true,false": 0.90,
+        "false,true": 0.75,
+        "false,false": 0.04
+      }
+    },
+    "L": {
+      "padres": ["I", "C"],
+      "cpt": {
+        "true,true": 0.92,
+        "true,false": 0.80,
+        "false,true": 0.50,
+        "false,false": 0.05
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "causas_objetivo": ["I", "C", "M"],
+  "escenarios": [
+    {
+      "id": 1,
+      "nombre": "Escenario 1: Una sola alerta observada",
+      "descripcion": "El IDS dispara una alerta (A=True), sin otras senales confirmadas.",
+      "evidencia": {
+        "A": true
+      }
+    },
+    {
+      "id": 2,
+      "nombre": "Escenario 2: Varias senales observadas simultaneamente",
+      "descripcion": "Coinciden alerta IDS (A=True), trafico anomalo (T=True) y fallos de login (L=True).",
+      "evidencia": {
+        "A": true,
+        "T": true,
+        "L": true
+      }
+    },
+    {
+      "id": 3,
+      "nombre": "Escenario 3: Alerta con evidencia de causa alternativa",
+      "descripcion": "Se observa alerta IDS (A=True), pero auditoria confirma error de configuracion (C=True).",
+      "evidencia": {
+        "A": true,
+        "C": true
+      }
+    },
+    {
+      "id": 4,
+      "nombre": "Escenario 4: Ausencia de una senal esperada",
+      "descripcion": "No hay alerta IDS (A=False), pero se detecta trafico anomalo (T=True) y fallos de login (L=True).",
+      "evidencia": {
+        "A": false,
+        "T": true,
+        "L": true
+      }
+    }
+  ],
+  "comparacion_previa": {
+    "escenario_id": 1,
+    "previa_base": 0.02,
+    "previa_alta": 0.20,
+    "justificacion": "Compara operacion rutinaria (2%) frente a periodo de alerta temprana por ciberinteligencia (20%)."
+  }
+}
