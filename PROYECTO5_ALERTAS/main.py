@@ -11,6 +11,7 @@ from verificacion_pgmpy import construir_modelo_pgmpy, consultar_pgmpy
 
 
 def ejecutar_escenarios(red: RedBayesiana, config_escenarios: dict):
+    # El modelo pgmpy se construye una sola vez y se reutiliza en los 4 escenarios.
     motor_pgmpy = construir_modelo_pgmpy(red)
     causas = config_escenarios["causas_objetivo"]
 
@@ -18,6 +19,7 @@ def ejecutar_escenarios(red: RedBayesiana, config_escenarios: dict):
     print("EVALUACION DE LOS 4 ESCENARIOS Y VERIFICACION CON PGMPY")
     print("=" * 78)
 
+    # Cada escenario es una evidencia distinta definida en escenarios.json.
     for esc in config_escenarios["escenarios"]:
         print(f"\n>>> {esc['nombre']}")
         print(f"    Contexto : {esc['descripcion']}")
@@ -29,6 +31,7 @@ def ejecutar_escenarios(red: RedBayesiana, config_escenarios: dict):
         print("-" * 78)
 
         for causa in causas:
+            # Misma consulta con el motor propio y con pgmpy; la diferencia debe ser ~0.
             res_propio = red.enumeration_ask(causa, esc["evidencia"])
             res_lib = consultar_pgmpy(motor_pgmpy, causa, esc["evidencia"])
             diff = abs(res_propio[True] - res_lib[True])
@@ -39,16 +42,19 @@ def ejecutar_escenarios(red: RedBayesiana, config_escenarios: dict):
 
 def ejecutar_comparacion_previas(red: RedBayesiana, config_escenarios: dict):
     comp = config_escenarios["comparacion_previa"]
+    # Escenario indicado en escenarios.json (por defecto el 1: una sola alerta).
     esc = next(
         e for e in config_escenarios["escenarios"] if e["id"] == comp["escenario_id"]
     )
 
+    # Dos clones: solo cambia P(I=True); el resto de las CPT es identico.
     red_base = red.clonar()
     red_base.actualizar_probabilidad_previa("I", comp["previa_base"])
 
     red_alta = red.clonar()
     red_alta.actualizar_probabilidad_previa("I", comp["previa_alta"])
 
+    # Misma evidencia, dos previas distintas.
     post_base = red_base.enumeration_ask("I", esc["evidencia"])
     post_alta = red_alta.enumeration_ask("I", esc["evidencia"])
 
@@ -81,6 +87,7 @@ def consulta_interactiva(red: RedBayesiana):
     entrada_ev = input("Evidencia (deje vacio si no hay evidencia): ").strip()
     evidencia: Dict[str, bool] = {}
 
+    # Formato VAR=true/false separado por comas; un formato invalido cancela la consulta.
     if entrada_ev:
         try:
             for par in entrada_ev.split(","):
@@ -110,6 +117,7 @@ def modificar_parametro_en_vivo(red: RedBayesiana):
         print("Variable no valida.")
         return
 
+    # La CPT se edita solo en memoria; red_alertas.json no se modifica.
     nodo = red.nodos[var]
     print(f"Padres de {var}: {nodo['padres']}")
     print("Entradas actuales de CPT:", nodo["cpt"])
@@ -129,6 +137,7 @@ def modificar_parametro_en_vivo(red: RedBayesiana):
 
 
 def menu():
+    # Red y escenarios se leen de archivos: el codigo no contiene valores fijos.
     red = RedBayesiana(ruta_json="red_alertas.json")
     with open("escenarios.json", "r", encoding="utf-8") as f:
         config_escenarios = json.load(f)
