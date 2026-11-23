@@ -1,6 +1,6 @@
 # Sistema Bayesiano de Interpretación Probabilística de Alertas Informáticas
 
-Sistema de diagnóstico probabilístico para entornos de ciberseguridad (SOC) basado en una **Red Bayesiana binaria**. Permite inferir las causas más probables detrás de alertas de red y registros de seguridad utilizando un **motor propio de inferencia exacta por enumeración** (sin bibliotecas externas), validado de forma cruzada con **`pgmpy`** (Eliminación de Variables), e incluye tanto una **interfaz web interactiva** como una **interfaz de consola**.
+Sistema de diagnóstico probabilístico para entornos de ciberseguridad (SOC) basado en una red bayesiana binaria. Permite estimar las causas más probables de una alerta en una red y registros de seguridad utilizando un motor propio de inferencia exacta por enumeración (sin bibliotecas externas), validado de forma cruzada con **`pgmpy`** (Eliminación de Variables), e incluye tanto una **interfaz web interactiva** como una **interfaz de consola**.
 
 ---
 
